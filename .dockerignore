@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentación
+*.md
+README.md
+LICENSE
+
+# Node modules (se instalan en la imagen)
+**/node_modules
+**/npm-debug.log
+**/yarn-error.log
+
+# Dependencias PHP
+**/vendor
+
+# Build artifacts
+**/dist
+**/build
+**/.next
+**/.nuxt
+
+# Archivos de desarrollo
+**/.vscode
+**/.idea
+**/.DS_Store
+**/Thumbs.db
+
+# Logs
+**/*.log
+**/logs
+
+# Environment files
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Testing
+**/coverage
+**/.nyc_output
+
+# Temporal
+**/tmp
+**/temp
+**/.cache
+
+# Docker
+**/Dockerfile
+**/docker-compose*.yml
+**/.dockerignore

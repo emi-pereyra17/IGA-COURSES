@@ -1,0 +1,44 @@
+# Dependencias
+vendor/
+composer.lock
+
+# Variables de entorno
+.env
+
+# Tests
+tests/
+phpunit.xml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Documentación
+README.md
+*.md
+
+# Logs
+writable/logs/*
+!writable/logs/index.html
+
+# Cache
+writable/cache/*
+!writable/cache/index.html
+
+# Sessions
+writable/session/*
+!writable/session/index.html
+
+# Uploads
+writable/uploads/*
+!writable/uploads/index.html
+
+# OS
+.DS_Store
+Thumbs.db

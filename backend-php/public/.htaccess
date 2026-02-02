@@ -1,0 +1,29 @@
+# Deshabilitar listado de directorios
+Options -Indexes
+
+# Reglas de reescritura para CodeIgniter
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Redirigir www a no-www
+    RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+    RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+
+    # Si el archivo o directorio existe, mostrarlo
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # De lo contrario, redirigir a index.php
+    RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+</IfModule>
+
+# Deshabilitar acceso a archivos ocultos
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Proteger archivos sensibles
+<FilesMatch "(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|orig|psd|sh|sql|sw[op])|~)$">
+    Require all denied
+</FilesMatch>

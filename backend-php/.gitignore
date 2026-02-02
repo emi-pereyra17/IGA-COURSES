@@ -1,0 +1,30 @@
+# CodeIgniter 4
+/vendor/
+/.env
+/phpunit*.xml
+/.phpunit.*.cache
+
+# Writable
+/writable/cache/*
+!/writable/cache/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/session/*
+!/writable/session/index.html
+/writable/uploads/*
+!/writable/uploads/index.html
+/writable/debugbar/*
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+
+# Composer
+composer.phar
+composer.lock
+
+# OS
+Thumbs.db

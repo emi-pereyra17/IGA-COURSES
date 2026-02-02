@@ -1,0 +1,123 @@
+version: "3.8"
+
+services:
+  # ==========================================
+  # SERVICIO 1: Base de Datos MySQL
+  # ==========================================
+  db:
+    image: mysql:8.0
+    container_name: iga-courses-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: iga_courses
+      MYSQL_USER: iga_user
+      MYSQL_PASSWORD: iga_password
+    ports:
+      - "3306:3306"
+    volumes:
+      # Cargar script de inicialización
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # Persistencia de datos
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-proot_password",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - iga-network
+
+  # ==========================================
+  # SERVICIO 2: API NestJS
+  # ==========================================
+  api-nest:
+    build:
+      context: ./backend-nest
+      dockerfile: Dockerfile
+    container_name: iga-courses-api-nest
+    restart: always
+    env_file: .env.docker
+    environment:
+      # Variables adicionales (no sensibles)
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - iga-network
+    command: sh -c "sleep 10 && npm run start:prod"
+
+  # ==========================================
+  # SERVICIO 3: API PHP CodeIgniter
+  # ==========================================
+  api-php:
+    build:
+      context: ./backend-php
+      dockerfile: Dockerfile
+    container_name: iga-courses-api-php
+    restart: always
+    env_file: .env.docker
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - iga-network
+    volumes:
+      # Montar código para desarrollo (opcional, comentar en producción)
+      # - ./backend-php:/var/www/html
+
+  # ==========================================
+  # SERVICIO 4: Frontend React
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_NEST: http://localhost:3000/api
+        VITE_API_PHP: http://localhost:8080
+    container_name: iga-courses-frontend
+    restart: always
+    environment:
+      # Variables de entorno para Vite
+      VITE_API_NEST: http://localhost:3000/api
+      VITE_API_PHP: http://localhost:8080
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api-nest
+      - api-php
+    networks:
+      - iga-network
+
+# ==========================================
+# VOLÚMENES
+# ==========================================
+volumes:
+  mysql_data:
+    driver: local
+    name: iga_courses_mysql_data
+
+# ==========================================
+# REDES
+# ==========================================
+networks:
+  iga-network:
+    driver: bridge
+    name: iga_courses_network

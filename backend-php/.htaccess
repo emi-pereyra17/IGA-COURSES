@@ -1,0 +1,15 @@
+# Deshabilitar listado de directorios
+Options -Indexes
+
+# Seguir enlaces simbólicos
+Options +FollowSymLinks
+
+# Reglas de reescritura
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Redirigir a public si no está en public
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

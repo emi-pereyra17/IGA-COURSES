@@ -1,0 +1,42 @@
+# Dependencias
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build
+dist/
+build/
+
+# Tests
+coverage/
+.nyc_output/
+test/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Variables de entorno (se copiarán específicamente)
+.env
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Documentación
+README.md
+*.md
+
+# Otros
+.DS_Store
+Thumbs.db
