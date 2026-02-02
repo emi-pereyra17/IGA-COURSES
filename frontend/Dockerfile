@@ -28,8 +28,11 @@ WORKDIR /app
 # Copiar solo el build desde el stage anterior
 COPY --from=builder /app/dist ./dist
 
+# Instalar serve en la imagen (evita depender de npx/red en el arranque)
+RUN npm install -g serve
+
 # Servir la app estática en el puerto 5173 (igual que docker-compose)
 EXPOSE 5173
 
-# Usar serve para servir la SPA (compatible con React Router)
-CMD ["npx", "serve", "-s", "dist", "-l", "5173"]
+# Servir la SPA (compatible con React Router)
+CMD ["serve", "-s", "dist", "-l", "5173"]

@@ -42,8 +42,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Copiar el código compilado desde el stage builder
 COPY --from=builder /app/dist ./dist
 
-# Copiar plantilla de variables para Docker (build funciona sin .env.docker local)
-COPY .env.docker.example ./.env.docker
+# Las variables de entorno (DB_HOST, etc.) se inyectan en runtime desde docker-compose (env_file: .env.docker)
 
 # Cambiar propietario de los archivos al usuario nestjs
 RUN chown -R nestjs:nestjs /app

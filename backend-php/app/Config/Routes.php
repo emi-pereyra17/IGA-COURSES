@@ -13,8 +13,3 @@ $routes->get('/', 'Home::index');
 $routes->get('api/reportes/ventas', 'Reporte::ventas');
 $routes->get('api/reportes/ventas-por-curso', 'AdminReport::stats');
 $routes->get('api/health', 'Reporte::health');
-
-/**
- * Compra de cursos - Validación aplicada antes de procesar
- */
-$routes->post('api/compras', 'Compra::store');

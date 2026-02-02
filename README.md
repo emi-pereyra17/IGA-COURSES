@@ -59,8 +59,9 @@ start.bat
 **Linux/Mac:**
 
 ```bash
-chmod +x start.sh
-./start.sh
+# No hay start.sh; usar directamente Docker o los comandos de las terminales (ver más abajo):
+docker-compose up --build
+# o abrir manualmente las terminales para NestJS, PHP y Frontend (ver Opción 2).
 ```
 
 **El script te preguntará:**
@@ -81,7 +82,14 @@ chmod +x start.sh
 
 ### Pasos
 
-**1. Iniciar todos los servicios:**
+**1. Crear archivo de variables de entorno (primera vez):**
+
+```bash
+cp .env.docker.example .env.docker
+# Opcional: editar .env.docker si quieres cambiar CORS_ORIGIN u otras variables
+```
+
+**2. Iniciar todos los servicios:**
 
 ```bash
 docker-compose up --build
@@ -94,7 +102,7 @@ Esto iniciará automáticamente:
 - ✅ API PHP en http://localhost:8080
 - ✅ Frontend React en http://localhost:5173
 
-**2. Verificar que todo está corriendo:**
+**3. Verificar que todo está corriendo:**
 
 ```bash
 # Ver estado de los servicios
@@ -104,11 +112,11 @@ docker-compose ps
 docker-compose logs -f
 ```
 
-**3. Acceder a la aplicación:**
+**4. Acceder a la aplicación:**
 
 Abrir navegador en: **http://localhost:5173**
 
-**4. Detener los servicios:**
+**5. Detener los servicios:**
 
 ```bash
 # Detener sin eliminar contenedores
@@ -147,7 +155,7 @@ docker exec -i iga-courses-db mysql -uiga_user -piga_password iga_courses < back
 
 ## 💻 Opción 2: Ejecutar Localmente (Desarrollo)
 
-**Para desarrollo local sin Docker se requieren 3 terminales simultáneas.**
+**Para desarrollo local sin Docker:** tener MySQL ya corriendo y **3 terminales** (NestJS, PHP, Frontend). El script `start.bat` abre esas 3 terminales; MySQL debe estar iniciado por separado (XAMPP, servicio, etc.).
 
 ### Pre-requisitos
 
@@ -274,6 +282,8 @@ public array $default = [
 php spark serve --port=8080
 ```
 
+*(Nota: el script `start.bat` usa `php -S localhost:8080 -t public`; ambas formas son válidas con CodeIgniter 4.)*
+
 **4. Verificar que funciona:**
 
 ```bash
@@ -328,7 +338,7 @@ La aplicación debe estar completamente funcional.
 | **3**    | PHP      | 8080   | `cd backend-php && php spark serve --port=8080` |
 | **4**    | Frontend | 5173   | `cd frontend && npm run dev`                    |
 
-**Nota:** Todas las terminales deben estar corriendo simultáneamente para que el sistema funcione.
+**Nota:** MySQL debe estar corriendo por separado (servicio o XAMPP). Las 3 terminales (NestJS, PHP, Frontend) deben estar activas a la vez para que el sistema funcione.
 
 ---
 
@@ -372,18 +382,19 @@ La aplicación debe estar completamente funcional.
 ```
 IGA-COURSES/
 │
-├── 📂 backend-nest/          # API NestJS (Cursos y Compras)
+├── 📂 backend-nest/          # API NestJS (Cursos, Compras, Auth)
 │   ├── src/
-│   │   ├── courses/          # Módulo de cursos
-│   │   ├── purchases/        # Módulo de compras
-│   │   └── database/         # Configuración TypeORM
+│   │   ├── store/            # Módulo cursos y compras (StoreController, PurchaseController)
+│   │   ├── auth/             # Autenticación JWT y usuarios
+│   │   ├── entities/         # Entidades TypeORM (Course, Client, Purchase, User)
+│   │   └── common/           # Pipes y utilidades
 │   ├── Dockerfile
 │   └── package.json
 │
 ├── 📂 backend-php/           # API PHP (Reportes Admin)
 │   ├── app/
 │   │   ├── Controllers/
-│   │   │   └── ReporteController.php
+│   │   │   └── Reporte.php    # Reporte de ventas
 │   │   └── Models/
 │   │       └── ReporteModel.php
 │   ├── Dockerfile
@@ -391,22 +402,26 @@ IGA-COURSES/
 │
 ├── 📂 frontend/              # Frontend React
 │   ├── components/
-│   │   └── PurchaseModal.jsx
+│   │   ├── PurchaseModal.jsx
+│   │   └── ProtectedRoute.jsx
+│   ├── contexts/
+│   │   └── AuthContext.jsx   # Estado de autenticación
 │   ├── pages/
 │   │   ├── Home.jsx          # Catálogo de cursos
 │   │   ├── MyCourses.jsx     # Historial de compras
-│   │   ├── Admin.jsx         # Dashboard admin
+│   │   ├── Admin.jsx         # Dashboard admin (protegido)
+│   │   ├── Login.jsx         # Inicio de sesión
 │   │   └── Layout.jsx        # Layout principal
-│   ├── api.js                # Config de Axios
+│   ├── api.js                # Config de Axios (nestApi, phpApi)
 │   ├── Dockerfile
 │   └── package.json
 │
 ├── 📂 database/              # Scripts de base de datos
-│   └── init.sql              # Schema inicial con datos
+│   └── init.sql              # Schema inicial con datos (courses, clients, purchases, users)
 │
 ├── 📄 docker-compose.yml     # Orquestación Docker
-├── 📄 .env.docker.example    # Template de variables
-├── 📄 Makefile               # Comandos simplificados
+├── 📄 .env.docker.example    # Template de variables (copiar a .env.docker)
+├── 📄 start.bat              # Script de inicio Windows (Docker o Local)
 └── 📄 README.md              # Este archivo
 ```
 
@@ -416,18 +431,30 @@ IGA-COURSES/
 
 ### NestJS API (Puerto 3000)
 
+Documentación interactiva (Swagger): **http://localhost:3000/api/docs**
+
 ```
+# Cursos y compras
 GET    /api/courses                     # Lista todos los cursos
-POST   /api/compras                     # Registra una compra
-       Body: {nombre, email, celular, cursoId}
-GET    /api/compras/historial/:email   # Historial de compras por email
+GET    /api/courses/:id                  # Detalle de un curso
+POST   /api/purchases                   # Registra una compra
+       Body: {client_name, client_email, client_phone, course_id}
+GET    /api/purchases/:email            # Historial de compras por email
+GET    /api/purchases/client/:clientId  # Historial por ID de cliente
+
+# Autenticación (Admin / Login)
+POST   /api/auth/register               # Registro de usuario
+POST   /api/auth/login                  # Login (devuelve JWT)
+GET    /api/auth/profile                # Perfil del usuario (requiere JWT)
+GET    /api/auth/validate               # Validar token
 ```
 
 ### PHP API (Puerto 8080)
 
 ```
 GET    /api/reportes/ventas             # Reporte completo de ventas
-       Response: Array de ventas con JOIN de cursos
+GET    /api/reportes/ventas-por-curso   # Estadísticas de ventas por curso
+GET    /api/health                      # Estado del servicio
 ```
 
 ---
@@ -457,7 +484,8 @@ GET    /api/reportes/ventas             # Reporte completo de ventas
 
 **4. Admin Dashboard:**
 
-- Ir a "Admin" en el menú
+- Ir a "Admin" en el menú (ruta protegida: requiere iniciar sesión como admin)
+- Si no hay sesión, redirige a Login; usar credenciales de admin (ver datos en `database/init.sql` o seed del backend)
 - Verificar estadísticas (Total Ventas, Ingresos, Cursos)
 - Verificar tabla de ventas completa
 
@@ -468,17 +496,17 @@ GET    /api/reportes/ventas             # Reporte completo de ventas
 curl http://localhost:3000/api/courses
 
 # NestJS - Crear compra
-curl -X POST http://localhost:3000/api/compras \
+curl -X POST http://localhost:3000/api/purchases \
   -H "Content-Type: application/json" \
   -d '{
-    "nombre": "Juan Test",
-    "email": "test@example.com",
-    "celular": "+54911234567",
-    "cursoId": 1
+    "client_name": "Juan Test",
+    "client_email": "test@example.com",
+    "client_phone": "+54911234567",
+    "course_id": 1
   }'
 
-# NestJS - Historial
-curl http://localhost:3000/api/compras/historial/test@example.com
+# NestJS - Historial por email
+curl http://localhost:3000/api/purchases/test@example.com
 
 # PHP - Reporte de ventas
 curl http://localhost:8080/api/reportes/ventas
@@ -540,25 +568,41 @@ docker-compose up --build
 
 ```sql
 -- Tabla de cursos
-cursos (
+courses (
   id INT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(255),
   description TEXT,
   price DECIMAL(10,2),
-  duration VARCHAR(100),
-  level VARCHAR(50),
-  instructor VARCHAR(255)
+  detail TEXT,
+  image_url VARCHAR(500)
+)
+
+-- Tabla de clientes
+clients (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255),
+  email VARCHAR(255) UNIQUE,
+  phone VARCHAR(20)
 )
 
 -- Tabla de compras
-compras (
+purchases (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  nombre VARCHAR(255),
-  email VARCHAR(255),
-  celular VARCHAR(50),
-  cursoId INT,
+  course_id INT,
+  client_id INT,
+  purchase_date DATETIME,
   created_at TIMESTAMP,
-  FOREIGN KEY (cursoId) REFERENCES cursos(id)
+  FOREIGN KEY (course_id) REFERENCES courses(id),
+  FOREIGN KEY (client_id) REFERENCES clients(id)
+)
+
+-- Tabla de usuarios (autenticación)
+users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(255) UNIQUE,
+  password VARCHAR(255),
+  name VARCHAR(255),
+  role ENUM('admin', 'user')
 )
 ```
 
@@ -622,15 +666,13 @@ Proyecto desarrollado para IGA Courses
 
 **⚡ Inicio Súper Rápido:**
 
-**Opción 1 - Script Automático:**
+**Opción 1 - Script Automático (solo Windows):**
 
 ```bash
-# Windows:
 start.bat
-
-# Linux/Mac:
-./start.sh
 ```
+
+*(En Linux/Mac usar `docker-compose up --build` directamente.)*
 
 **Opción 2 - Docker Directo:**
 

@@ -57,8 +57,7 @@ RUN echo '<VirtualHost *:80>\n\
 # Copiar archivos del proyecto
 COPY . /var/www/html/
 
-# Copiar plantilla de entorno para Docker (build funciona sin .env.docker local)
-COPY .env.docker.example /var/www/html/.env
+# Las variables de entorno (DB_HOST, CI_ENVIRONMENT, etc.) se inyectan en runtime desde docker-compose (env_file: .env.docker en la raíz)
 
 # Instalar dependencias de Composer
 RUN composer install --no-dev --optimize-autoloader --no-interaction
